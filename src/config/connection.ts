@@ -1,19 +1,18 @@
 import { Sequelize } from "sequelize";
-import * as dotenv from 'dotenv';
 
 import { Policy } from "../models/policy.model";
 import { Client } from "../models/client.model";
 
-dotenv.config({path: `${__dirname}/../.env`});
+import environmentVariable from "../services/env.service";
 
 const connection = new Sequelize(
-    process.env.MYSQL_DB as string,
-    process.env.MYSQL_UNAME as string,
-    process.env.MYSQL_UPASS as string,
+    environmentVariable().MYSQL_DB as string,
+    environmentVariable().MYSQL_UNAME as string,
+    environmentVariable().MYSQL_UPASS as string,
   {
-    host: process.env.MYSQL_HOST,
+    host: environmentVariable().MYSQL_HOST,
     dialect: "mysql",
-    port: Number(process.env.MYSQL_PORT)
+    port: Number(environmentVariable().MYSQL_PORT)
   }
 );
 

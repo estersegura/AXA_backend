@@ -1,11 +1,8 @@
 import { CLIENTS_ROUTE, POLICIES_ROUTE } from '../constants/url.constant';
-import { Client } from '../models/client.model';
-import { Policy } from '../models/policy.model';
 import { IPolicy } from '../models/interfaces/policy.model';
 import { IClient } from "../models/interfaces/client.model";
-import * as dotenv from 'dotenv';
+import environmentVariable from "./env.service";
 
-dotenv.config({path: `${__dirname}/../.env`});
 
 export class ApiService {
     private static instance: ApiService;
@@ -21,7 +18,7 @@ export class ApiService {
     }
 
     private composeRoute = async (url: string): Promise<{}> => {
-        const composeUrl = `${process.env.BASE_URL as string}${url}`;
+        const composeUrl = `${environmentVariable().BASE_URL as string}${url}`;
         const response = await fetch(composeUrl);
         return response.json();
     }

@@ -3,6 +3,7 @@ import { ApiService } from '../services/api.service';
 import { RESPONSE } from '../constants/error.constant';
 import { IClient } from '../models/interfaces/client.model';
 import { IPolicy } from '../models/interfaces/policy.model';
+import environmentVariable from "../services/env.service";
 
 const PolicyRoute = express.Router();
 let policies: IPolicy[] = [];
@@ -16,7 +17,7 @@ async function getClientRole(req: Request, res: Response, next: NextFunction) {
     try {
         client = await getClientByParam(req.params['id'] !== undefined ? 'id' : 'username', req.params['id'] !== undefined ? req.params['id'] : req.params['username']) as IClient;
         const { role: roleClient = '' } = client as IClient;
-        if (roleClient !== process.env.ADMIN_ROLE) {
+        if (roleClient !== environmentVariable().ADMIN_ROLE) {
             return res.status(403).json(RESPONSE['FORBIDDEN_403']);
         }
         next();
@@ -39,7 +40,7 @@ PolicyRoute.get('/number/:id', async (req: Request, res: Response) => {
         const policyByNumber = policies.find(i => i.id === req.params['id']);
         const client = await getClientByParam('id', policyByNumber ? policyByNumber['clientId'] as string: '');
         const { role: roleClient = '' } = client as IClient;
-        if (roleClient !== process.env.ADMIN_ROLE) {
+        if (roleClient !== environmentVariable().ADMIN_ROLE) {
             return res.status(403).json(RESPONSE['FORBIDDEN_403']);
         }
         res.status(200).json(client);
