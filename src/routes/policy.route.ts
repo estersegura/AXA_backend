@@ -1,49 +1,60 @@
-import express, { Response, Request } from 'express';
-import { getClients, getPolicies } from '../services/api.service';
+import express, { Response, Request, NextFunction } from 'express';
+import { ApiService } from '../services/api.service';
 import { RESPONSE } from '../constants/error.constant';
 import { IClient } from '../models/interfaces/client.model';
+import { IPolicy } from '../models/interfaces/policy.model';
 
 const PolicyRoute = express.Router();
+let policies: IPolicy[] = [];
+let clients: IClient[] = [];
+let client: IClient;
 
-PolicyRoute.get('/username/:username', async(req: Request, res: Response) => {
+async function getClientRole(req: Request, res: Response, next: NextFunction) {
+    const apiService = ApiService.getInstance();
+    policies = await apiService.getPolicies();
+    clients = await apiService.getClients();    
     try {
-        const policies = await getPolicies();
-        const client = await getClientByParam('name', req.params['username']);
+        client = await getClientByParam(req.params['id'] !== undefined ? 'id' : 'username', req.params['id'] !== undefined ? req.params['id'] : req.params['username']) as IClient;
         const { role: roleClient = '' } = client as IClient;
-        if (roleClient !== 'admin') {
+        if (roleClient !== process.env.ADMIN_ROLE) {
             return res.status(403).json(RESPONSE['FORBIDDEN_403']);
         }
-        const { id: idClient = '' } = client as IClient;
-        const policiesByUsername = policies.filter(i => i.clientId === idClient);
-        res.status(200).json(policiesByUsername);
+        next();
     } catch (error) {
         return res.status(400).json(RESPONSE['BAD_REQUEST_400']);
     }
-})
-
-PolicyRoute.get('/number/:id', async(req: Request, res: Response) => {
-    try {
-        const policies = await getPolicies();
-        const policyByNumber = policies.find(i => i.id === req.params['id']);        
-        const client = await getClientByParam('id', policyByNumber ? policyByNumber['clientId'] as string: '');
-        const { role: roleClient = '' } = client as IClient;
-        if (roleClient !== 'admin') {
-            return res.status(403).json(RESPONSE['FORBIDDEN_403']);
-        }
-        res.status(200).json(client);
-    } catch (error) {
-        return res.status(400).json(RESPONSE['BAD_REQUEST_400']);
-    }
-})
+}
 
 async function getClientByParam(filterParam: string, value: string) {
-    const clients = await getClients();
     switch (filterParam) {
         case "id": return clients.find(i => i.id === value) as IClient;
-        case "name": return clients.find(i => i.name === value) as IClient;
+        case "username": return clients.find(i => i.name === value) as IClient;
         default:
             return clients;
     }
 }
+
+PolicyRoute.get('/number/:id', async (req: Request, res: Response) => {
+    try {
+        const policyByNumber = policies.find(i => i.id === req.params['id']);
+        const client = await getClientByParam('id', policyByNumber ? policyByNumber['clientId'] as string: '');
+        const { role: roleClient = '' } = client as IClient;
+        if (roleClient !== process.env.ADMIN_ROLE) {
+            return res.status(403).json(RESPONSE['FORBIDDEN_403']);
+        }
+        res.status(200).json(client);
+    } catch (error) {
+        return res.status(500).json(RESPONSE['BAD_REQUEST_400']);
+    }
+})
+
+PolicyRoute.get('/username/:username', getClientRole, async (req: Request, res: Response) => {
+    try {
+        const policiesByUsername = policies.filter(i => i.clientId === client.id);
+        res.status(200).json(policiesByUsername);
+    } catch (error) {
+        return res.status(500).json(RESPONSE['BAD_REQUEST_400']);
+    }
+})
 
 export default PolicyRoute

@@ -1,12 +1,15 @@
 import express, { Response, Request } from 'express';
-import { getClients } from '../services/api.service';
+import { ApiService } from '../services/api.service';
+import { IClient } from '../models/interfaces/client.model';
 import { RESPONSE } from '../constants/error.constant';
 
 const clientsRoute = express.Router();
+let clients: IClient[] = [];
 
 clientsRoute.get('/id/:id', async(req: Request, res: Response) => {
     try {
-        const clients = await getClients();
+        const apiService = ApiService.getInstance();
+        clients = await apiService.getClients();
         const client = clients.find(i => i.id === req.params['id']);
         res.status(200).json(client);
     } catch (error) {
@@ -16,7 +19,8 @@ clientsRoute.get('/id/:id', async(req: Request, res: Response) => {
 
 clientsRoute.get('/username/:username', async(req: Request, res: Response) => {
     try {
-        const clients = await getClients()
+        const apiService = ApiService.getInstance();
+        clients = await apiService.getClients();
         const client = clients.find(i => i.name === req.params['username']);
         res.status(200).json(client);
     } catch (error) {
