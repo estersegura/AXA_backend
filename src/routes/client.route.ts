@@ -6,6 +6,14 @@ import { RESPONSE } from '../constants/error.constant';
 const clientsRoute = express.Router();
 let clients: IClient[] = [];
 
+/**
+* Get user data filtered by user id
+*
+* @param id id of the user
+*
+* @returns the details of the user
+*
+**/
 clientsRoute.get('/id/:id', async(req: Request, res: Response) => {
     try {
         const apiService = ApiService.getInstance();
@@ -17,6 +25,14 @@ clientsRoute.get('/id/:id', async(req: Request, res: Response) => {
     }
 })
 
+/**
+* Get user data filtered by username
+*
+* @param username name of the user
+*
+* @returns the details of the user
+*
+**/
 clientsRoute.get('/username/:username', async(req: Request, res: Response) => {
     try {
         const apiService = ApiService.getInstance();

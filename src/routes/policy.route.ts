@@ -10,6 +10,17 @@ let policies: IPolicy[] = [];
 let clients: IClient[] = [];
 let client: IClient;
 
+
+/**
+* Get the role of a user
+*
+* @param req - the request made
+* @param res - the final response
+* @param next - next function to find the next route to execute
+*
+* @returns An error or just skips to the next route
+*
+**/
 async function getClientRole(req: Request, res: Response, next: NextFunction) {
     const apiService = ApiService.getInstance();
     policies = await apiService.getPolicies();
@@ -26,6 +37,15 @@ async function getClientRole(req: Request, res: Response, next: NextFunction) {
     }
 }
 
+/**
+* Get a concrete client
+*
+* @param filterParam - determine if the parameter to find the client is the 'id' or the 'username'
+* @param value - value to filter
+*
+* @returns the client or the list of clients
+*
+**/
 async function getClientByParam(filterParam: string, value: string) {
     switch (filterParam) {
         case "id": return clients.find(i => i.id === value) as IClient;
@@ -35,6 +55,14 @@ async function getClientByParam(filterParam: string, value: string) {
     }
 }
 
+/**
+* Get the user linked to a policy number
+*
+* @param id id of the policy
+*
+* @returns the list of policies linked to a user, or an error in case the user don't have the right permissions
+*
+**/
 PolicyRoute.get('/number/:id', async (req: Request, res: Response) => {
     try {
         const policyByNumber = policies.find(i => i.id === req.params['id']);
@@ -49,6 +77,14 @@ PolicyRoute.get('/number/:id', async (req: Request, res: Response) => {
     }
 })
 
+/**
+* Get all the policies linked to a given user
+*
+* @param username the name of the user 
+*
+* @returns the user linked to a policy, or an error in case the user don't have the right permissions
+*
+**/
 PolicyRoute.get('/username/:username', getClientRole, async (req: Request, res: Response) => {
     try {
         const policiesByUsername = policies.filter(i => i.clientId === client.id);
